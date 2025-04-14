@@ -50,8 +50,9 @@ class UserService:
             validated_data = UserCreate(**user_data).model_dump()
             existing_user = await cls.get_by_username(session, validated_data['username']) or await cls.get_by_email(session, validated_data['email'])
             if existing_user:
-                logger.error("User with given email or username already exists.")
-                return None
+                field = "username" if await cls.get_by_username(session, validated_data['username']) else "email"
+                raise ValueError(f"{field.capitalize()} already exists.")
+
             validated_data['hashed_password'] = hash_password(validated_data.pop('password'))
             new_user = User(**validated_data)
             session.add(new_user)

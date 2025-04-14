@@ -158,3 +158,27 @@ async def test_unlock_user_account(db_session, locked_user):
     await UserService.unlock_user_account(db_session, locked_user.id)
     is_locked = await UserService.is_account_locked(db_session, locked_user.username)
     assert not is_locked, "The account should be unlocked after calling unlock_user_account."
+
+@pytest.mark.asyncio
+async def test_username_uniqueness_violation(db_session):
+    user_data = {
+        "username": "duplicate_user",
+        "email": "unique_email_1@example.com",
+        "password": "StrongPass123!"
+    }
+
+    # first creation should succeed
+    user1 = await UserService.register_user(db_session, user_data)
+    assert user1 is not None
+
+    # second creation should fail (same username, different email)
+    duplicate_user_data = {
+        "username": "duplicate_user",   #same username
+        "email": "unique_email_2@example.com",
+        "password": "StrongPass123!"
+    }
+
+    with pytest.raises(ValueError) as excinfo:
+        await UserService.register_user(db_session, duplicate_user_data)
+
+    assert "Username already exists." in str(excinfo.value)
