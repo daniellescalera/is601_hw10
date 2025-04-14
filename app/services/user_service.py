@@ -67,6 +67,10 @@ class UserService:
             # validated_data = UserUpdate(**update_data).dict(exclude_unset=True)
             validated_data = UserUpdate(**update_data).dict(exclude_unset=True)
 
+            # Convert HttpUrl object to str for DB compatibility
+            if "profile_picture_url" in validated_data and validated_data["profile_picture_url"] is not None:
+                validated_data["profile_picture_url"] = str(validated_data["profile_picture_url"])
+
 
             if 'password' in validated_data:
                 validated_data['hashed_password'] = hash_password(validated_data.pop('password'))
