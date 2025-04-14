@@ -25,26 +25,34 @@ class SimpleDiscordKafkaService:
         self.chat_api = ChatOpenAI(api_key=openai_key, model="gpt-3.5-turbo")
         logger.info("Chat API initialized with model gpt-3.5-turbo")
 
-        # Kafka Producer and Consumer setup
-        self.producer = AIOKafkaProducer(
-            bootstrap_servers='kafka:9092',
-            value_serializer=lambda m: json.dumps(m).encode('utf-8'),
-            loop=asyncio.get_event_loop(),
-            enable_idempotence=True,
-            acks='all',
-            retry_backoff_ms=500
-        )
-        self.consumer = AIOKafkaConsumer(
-            bootstrap_servers='kafka:9092',
-            value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-            loop=asyncio.get_event_loop(),
-            auto_offset_reset='earliest',
-            enable_auto_commit=True,
-            group_id='discord_history_consumer'
-        )
-        logger.info("Kafka producer and consumer configured")
+        # Kafka will be lazily initialized
+        self.producer = None
+        self.consumer = None
 
         self.setup_bot_events()
+
+    async def initialize_kafka(self):
+        if self.producer is None:
+            self.producer = AIOKafkaProducer(
+                bootstrap_servers='kafka:9092',
+                value_serializer=lambda m: json.dumps(m).encode('utf-8'),
+                enable_idempotence=True,
+                acks='all',
+                retry_backoff_ms=500
+            )
+            await self.producer.start()
+            logger.info("Kafka producer started")
+
+        if self.consumer is None:
+            self.consumer = AIOKafkaConsumer(
+                bootstrap_servers='kafka:9092',
+                value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+                auto_offset_reset='earliest',
+                enable_auto_commit=True,
+                group_id='discord_history_consumer'
+            )
+            await self.consumer.start()
+            logger.info("Kafka consumer started")
 
     def setup_bot_events(self):
         @self.bot.event
@@ -125,10 +133,7 @@ class SimpleDiscordKafkaService:
 
     async def start(self):
         try:
-            await self.producer.start()
-            logger.info("Kafka producer started")
-            await self.consumer.start()
-            logger.info("Kafka consumer started")
+            await self.initialize_kafka()
             await self.bot.start(self.token)
         except Exception as e:
             logger.error(f"Failed to start services due to: {e}")
@@ -137,10 +142,12 @@ class SimpleDiscordKafkaService:
 
     async def stop(self):
         try:
-            await self.producer.stop()
-            logger.info("Kafka producer stopped")
-            await self.consumer.stop()
-            logger.info("Kafka consumer stopped")
+            if self.producer:
+                await self.producer.stop()
+                logger.info("Kafka producer stopped")
+            if self.consumer:
+                await self.consumer.stop()
+                logger.info("Kafka consumer stopped")
         except Exception as e:
             logger.error(f"Failed to stop services: {e}")
         try:
