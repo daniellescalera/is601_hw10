@@ -1,10 +1,9 @@
 from builtins import bool, int, str
 from pathlib import Path
-from pydantic import  Field, AnyUrl, DirectoryPath
+from pydantic import Field, AnyUrl, DirectoryPath
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    max_login_attempts: int = Field(default=3, description="Background color of QR codes")
     # Server configuration
     server_base_url: AnyUrl = Field(default='http://localhost', description="Base URL of the server")
     server_download_folder: str = Field(default='downloads', description="Folder for storing downloaded files")
@@ -20,31 +19,33 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 15  # 15 minutes for access token
     refresh_token_expire_minutes: int = 1440  # 24 hours for refresh token
+
     # Database configuration
     database_url: str = Field(default='postgresql+asyncpg://user:password@postgres/myappdb', description="URL for connecting to the database")
-
-    # Optional: If preferring to construct the SQLAlchemy database URL from components
     postgres_user: str = Field(default='user', description="PostgreSQL username")
     postgres_password: str = Field(default='password', description="PostgreSQL password")
     postgres_server: str = Field(default='localhost', description="PostgreSQL server address")
     postgres_port: str = Field(default='5432', description="PostgreSQL port")
     postgres_db: str = Field(default='myappdb', description="PostgreSQL database name")
+
     # Discord configuration
     discord_bot_token: str = Field(default='NONE', description="Discord bot token")
     discord_channel_id: int = Field(default=1234567890, description="Default Discord channel ID for the bot to interact", example=1234567890)
-    #Open AI Key 
-    openai_api_key: str = Field(default='NONE', description="Open AI Api Key")
-    send_real_mail: bool = Field(default=False, description="use mock")
-    # Email settings for Mailtrap
-    smtp_server: str = Field(default='smtp.mailtrap.io', description="SMTP server for sending emails")
-    smtp_port: int = Field(default=2525, description="SMTP port for sending emails")
-    smtp_username: str = Field(default='your-mailtrap-username', description="Username for SMTP server")
-    smtp_password: str = Field(default='your-mailtrap-password', description="Password for SMTP server")
 
+    # OpenAI Key 
+    openai_api_key: str = Field(default='NONE', description="Open AI API Key")
+    max_login_attempts: int = Field(default=5, description="Max login attempts", example=5)
+    send_real_mail: bool = Field(default=False, description="Whether to send real emails or use a mock service")
+
+    # SMTP (email) configuration
+    smtp_host: str = Field(default='sandbox.smtp.mailtrap.io', description="SMTP server hostname")
+    smtp_port: int = Field(default=587, description="SMTP server port")
+    smtp_username: str = Field(default='559910da9bdbc6', description="SMTP username (email account)")
+    smtp_password: str = Field(default='f857d1faae6303', description="SMTP password")
+    smtp_sender_email: str = Field(default='test@myapp.com', description="Default sender email address")
 
     class Config:
-        # If your .env file is not in the root directory, adjust the path accordingly.
-        env_file = ".env"
+        env_file = ".env"  # Path to the .env file
         env_file_encoding = 'utf-8'
 
 # Instantiate settings to be imported in your application

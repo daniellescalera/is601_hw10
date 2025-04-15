@@ -20,9 +20,9 @@ async def test_create_user_with_valid_data(db_session, email_service):
 # Test creating a user with invalid data
 async def test_create_user_with_invalid_data(db_session, email_service):
     user_data = {
-        "nickname": "",  # Invalid nickname
-        "email": "invalidemail",  # Invalid email
-        "password": "short",  # Invalid password
+        "nickname": "",
+        "email": "invalidemail",
+        "password": "short",
     }
     user = await UserService.create(db_session, user_data, email_service)
     assert user is None
@@ -102,8 +102,8 @@ async def test_register_user_with_valid_data(db_session, email_service):
 # Test attempting to register a user with invalid data
 async def test_register_user_with_invalid_data(db_session, email_service):
     user_data = {
-        "email": "registerinvalidemail",  # Invalid email
-        "password": "short",  # Invalid password
+        "email": "registerinvalidemail",
+        "password": "short",
     }
     user = await UserService.register_user(db_session, user_data, email_service)
     assert user is None
@@ -144,13 +144,13 @@ async def test_reset_password(db_session, user):
 
 # Test verifying a user's email
 async def test_verify_email_with_token(db_session, user):
-    token = "valid_token_example"  # This should be set in your user setup if it depends on a real token
-    user.verification_token = token  # Simulating setting the token in the database
+    token = "valid_token_example"
+    user.verification_token = token
     await db_session.commit()
     result = await UserService.verify_email_with_token(db_session, user.id, token)
     assert result is True
 
-# Test unlocking a user's account
+# ✅ Final resolved version
 async def test_unlock_user_account(db_session, locked_user):
     unlocked = await UserService.unlock_user_account(db_session, locked_user.id)
     assert unlocked, "The account should be unlocked"
