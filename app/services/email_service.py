@@ -8,7 +8,7 @@ from app.models.user_model import User
 class EmailService:
     def __init__(self, template_manager: TemplateManager):
         self.smtp_client = SMTPClient(
-            server=settings.smtp_server,
+            server=settings.smtp_host,
             port=settings.smtp_port,
             username=settings.smtp_username,
             password=settings.smtp_password

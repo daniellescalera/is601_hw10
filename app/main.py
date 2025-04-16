@@ -3,10 +3,12 @@ from fastapi import FastAPI
 from starlette.responses import JSONResponse
 from app.database import Database
 from app.dependencies import get_settings
-from app.routers import oauth, user_routes
+from app.routers import user_routes
 from app.services.gutenberg_service import SimpleDiscordKafkaService
 from app.utils.api_description import getDescription
 from app.utils.common import setup_logging
+from app.routers import user_routes as oauth
+
 
 setup_logging()
 settings = get_settings()

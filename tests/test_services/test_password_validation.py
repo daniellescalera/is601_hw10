@@ -1,5 +1,12 @@
 import pytest
 from app.services.user_service import UserService
+from app.services.email_service import EmailService
+from app.utils.template_manager import TemplateManager
+
+# Set up a shared email service instance
+template_manager = TemplateManager()
+email_service = EmailService(template_manager=template_manager)
+get_email_service = lambda: email_service
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("invalid_password", [
@@ -15,9 +22,8 @@ async def test_password_validation_invalid(db_session, invalid_password):
         "email": f"{invalid_password[:4]}@example.com",
         "password": invalid_password
     }
-    user = await UserService.register_user(db_session, user_data)
+    user = await UserService.register_user(db_session, user_data, get_email_service())  # <-- FIXED
     assert user is None
-
 
 @pytest.mark.asyncio
 async def test_password_validation_valid(db_session):
@@ -26,5 +32,5 @@ async def test_password_validation_valid(db_session):
         "email": "validuser123@example.com",
         "password": "Valid123!Password"
     }
-    user = await UserService.register_user(db_session, user_data)
+    user = await UserService.register_user(db_session, user_data, get_email_service())  # <-- FIXED
     assert user is not None

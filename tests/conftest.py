@@ -261,3 +261,21 @@ def user_response_data():
 @pytest.fixture
 def login_request_data():
     return {"username": "john_doe_123", "password": "SecurePassword123!"}
+
+@pytest.fixture
+def create_token_for_user():
+    def _create_token(user):
+        return create_access_token(data={"sub": str(user.id), "role": user.role.value})
+    return _create_token
+
+@pytest.fixture
+async def admin_token(admin_user, create_token_for_user):
+    return create_token_for_user(admin_user)
+
+@pytest.fixture
+async def manager_token(manager_user, create_token_for_user):
+    return create_token_for_user(manager_user)
+
+@pytest.fixture
+async def user_token(verified_user, create_token_for_user):
+    return create_token_for_user(verified_user)
